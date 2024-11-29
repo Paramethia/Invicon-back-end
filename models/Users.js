@@ -11,4 +11,4 @@ const Users = new mongoose.Schema({
 
 const Invitates = mongoose.model('Users', Users);
 
-module.exports = FormDataModel;
+module.exports = Invitates;
