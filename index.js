@@ -10,7 +10,7 @@ const { MailerSend, EmailParams, Sender, Recipient } = require('mailersend');
 const ex = express();
 ex.use(express.json());
 ex.use(cors({
-    origin: "https://www.invicon.lol",
+    origin: "https://invicon.lol",
     methods: ['GET', 'POST'],
     credentials: true
 }));
