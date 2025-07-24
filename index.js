@@ -25,7 +25,7 @@ mongoose.connect(clusterURL, {
 });
 
 const paypalCId = Abv6hYurB2yUHNutRWSfgkKJosg2e6UlYxwzaNnqZq4LM3w_4JO6sBzjpSEkp6V7iMaKEutdoaVVc6rv;
-const paupalSecret = EIWYjf5cISE9ycXHrV2sVH_E2rHHnTZG83ntx3ILUXKvXe3Tg9HcfOm9hE8XRyaKKo3GxIUj1Rs7har2
+const paypalSecret = EIWYjf5cISE9ycXHrV2sVH_E2rHHnTZG83ntx3ILUXKvXe3Tg9HcfOm9hE8XRyaKKo3GxIUj1Rs7har2
 
 const Environment = process.env.NODE_ENV === "production"
   ? paypal.core.LiveEnvironment
