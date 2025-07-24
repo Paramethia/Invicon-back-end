@@ -5,6 +5,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Invites = require('./models/Invitates');
 const Users = require('./models/Users');
+const paypal = require('@paypal/checkout-server-sdk');
 const { MailerSend, EmailParams, Sender, Recipient } = require('mailersend');
 
 const ex = express();
@@ -22,6 +23,14 @@ mongoose.connect(clusterURL, {
     useUnifiedTopology: true,
     tlsInsecure: true,
 });
+
+const Environment = process.env.NODE_ENV === "production"
+  ? paypal.core.LiveEnvironment
+  : paypal.core.SandboxEnvironment;
+
+const paypalClient = new paypal.core.PayPalHttpClient(
+  new Environment(process.env.PAYPAL_CLIENT_ID, process.env.PAYPAL_CLIENT_SECRET)
+);
 
 // Function to clear the database
 const clearDatabase = async () => {
