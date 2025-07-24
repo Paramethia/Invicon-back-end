@@ -228,7 +228,7 @@ const tierUpdate = (inviter) => {
     }
 };
 
-// Home, Dahsboard and Leaks page functions
+// Home, Dashboard and Leaks page functions
 
 ex.post('/invite-check', async (req, res) => {
     const { username, inviteId } = req.body;
@@ -268,6 +268,57 @@ ex.post('/invite-data', async (req, res) => {
     } catch (error) {
         console.error('Error fetching invite data:', error);
     }
+});
+
+ex.post('/create-order', async (req, res) => {
+  const { price } = req.body;
+
+  const request = new paypal.orders.OrdersCreateRequest();
+  request.prefer("return=representation");
+  request.requestBody({
+    intent: "CAPTURE",
+    purchase_units: [{
+      amount: {
+        currency_code: "USD",
+        value: price.toString()
+      }
+    }]
+  });
+
+  try {
+    const order = await paypalClient.execute(request);
+    res.status(200).json({ orderId: order.result.id });
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
+
+ex.post('/capture-order', async (req, res) => {
+  const { orderId, username, tier } = req.body;
+
+  const request = new paypal.orders.OrdersCaptureRequest(orderId);
+  request.requestBody({});
+
+  try {
+    const capture = await paypalClient.execute(request);
+
+    if (capture.result.status === "COMPLETED") {
+      const inviter = await Invites.findOne({ username });
+      if (!inviter) return res.status(404).json({ message: "User not found" });
+
+      inviter.tier = tier;
+      await inviter.save();
+
+      return res.json({ message: "Payment successful, tier updated." });
+    } else {
+      return res.status(400).json({ message: "Payment not completed." });
+    }
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
 });
 
 ex.post('/invites', async (req, res) => {
