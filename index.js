@@ -29,7 +29,7 @@ const Environment = process.env.NODE_ENV === "production"
   : paypal.core.SandboxEnvironment;
 
 const paypalClient = new paypal.core.PayPalHttpClient(
-  new Environment("Abv6hYurB2yUHNutRWSfgkKJosg2e6UlYxwzaNnqZq4LM3w_4JO6sBzjpSEkp6V7iMaKEutdoaVVc6rv", "EIWYjf5cISE9ycXHrV2sVH_E2rHHnTZG83ntx3ILUXKvXe3Tg9HcfOm9hE8XRyaKKo3GxIUj1Rs7har2")
+  new Environment(process.env.PAYPAL_CLIENT_ID, process.env.PAYPAL_CLIENT_SECRET)
 );
 
 // Function to clear the database
