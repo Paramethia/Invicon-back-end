@@ -55,6 +55,12 @@ let mailerSend = new MailerSend({
 
 let sendFrom = new Sender("admin@invicon.lol", "Invicon");
 
+// Testing route
+
+ex.get('/ping', async (req, res) => {
+    res.status(200).json({ status: "ok" })
+})
+
 // Register page function
 
 ex.post('/register', async (req, res) => {
@@ -135,7 +141,7 @@ ex.post('/request-password-reset', async (req, res) => {
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
         await user.save();
 
-        let resetLink = `https://invicon.lol/reset?token=${token}`;
+        let resetLink = `https://invicon.netlify.app/reset?token=${token}`;
 
         const recipients = [new Recipient(email, "User")];
         const emailParams = new EmailParams()
@@ -199,7 +205,7 @@ ex.post('/generate-invite', async (req, res) => {
 
         if (inviter) {
             // If an inviteId already exists for the username, return the existing Id with link
-            return res.json({ inviteLink: `https://invicon.lol/register?inviteId=${inviter.inviteId}` });
+            return res.json({ inviteLink: `https://invicon.netlify.app/register?inviteId=${inviter.inviteId}` });
         } else {
              const newInvite = new Invites({
                 username,
@@ -207,7 +213,7 @@ ex.post('/generate-invite', async (req, res) => {
             });
         
             await newInvite.save();
-            res.json({ inviteLink: `https://invicon.lol/register?inviteId=${newInvite.inviteId}` });
+            res.json({ inviteLink: `https://invicon.netlify.app/register?inviteId=${newInvite.inviteId}` });
         }
     } catch (err) {
         console.error('Error generating invite link:', err);
