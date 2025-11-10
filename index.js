@@ -54,7 +54,7 @@ const mailerSend = new MailerSend({
     apiKey: process.env.MailerSEND_API_KEY,
 });
 
-const sendFrom = new Sender("admin@invicon.lol", "Invicon");
+const sendFrom = new Sender("test-xkjn41mn8kp4z781.mlsender.net", "Invicon");
 
 // Testing route
 
@@ -148,7 +148,7 @@ ex.post('/request-password-reset', async (req, res) => {
         const emailParams = new EmailParams()
             .setFrom(sendFrom)
             .setTo(recipients)
-            .setReplyTo(sentFrom)
+            .setReplyTo(sendFrom)
             .setSubject("Password Reset")
             .setHtml(`
                 <h1> Invicon password reset request </h1>
