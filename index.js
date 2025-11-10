@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 const Invites = require('./models/Invitates');
 const Users = require('./models/Users');
 const paypal = require('@paypal/checkout-server-sdk');
@@ -49,11 +50,11 @@ const clearDatabase = async () => {
 
 //clearDatabase();
 
-let mailerSend = new MailerSend({
+const mailerSend = new MailerSend({
     apiKey: process.env.MailerSEND_API_KEY,
 });
 
-let sendFrom = new Sender("admin@invicon.lol", "Invicon");
+const sendFrom = new Sender("admin@invicon.lol", "Invicon");
 
 // Testing route
 
@@ -141,11 +142,11 @@ ex.post('/request-password-reset', async (req, res) => {
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
         await user.save();
 
-        let resetLink = `https://invicon.netlify.app/reset?token=${token}`;
+        const resetLink = `https://invicon.netlify.app/reset?token=${token}`;
 
         const recipients = [new Recipient(email, "User")];
         const emailParams = new EmailParams()
-            .setFrom(sentFrom)
+            .setFrom(sendFrom)
             .setTo(recipients)
             .setReplyTo(sentFrom)
             .setSubject("Password Reset")
@@ -175,6 +176,7 @@ ex.post('/reset-password', async (req, res) => {
             resetPasswordToken: token,
             resetPasswordExpires: { $gt: Date.now() },
         });
+        
         if (!user) {
             return res.status(400).json("Password reset token is invalid or has expired");
         }
@@ -379,6 +381,6 @@ ex.get('*', (req, res) => {
     res.sendFile(clientPage);
 });
 
-ex.listen(2004, () => {
-    console.log("Server listening on http://128.0.3.5:2004");
+ex.listen(process.env.PORT, () => {
+    console.log("Server listening on port:", process.env.PORT);
 });
