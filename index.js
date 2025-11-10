@@ -17,7 +17,7 @@ ex.use(cors({
     credentials: true
 }));
 
-let clusterURL = "mongodb+srv://paramethia:PCx48Hh.u7e-_zM@mycluster.ahfaufe.mongodb.net/invicon?retryWrites=true&w=majority&appName=MyCluster";
+const clusterURL = "mongodb+srv://paramethia:PCx48Hh.u7e-_zM@mycluster.ahfaufe.mongodb.net/invicon?retryWrites=true&w=majority&appName=MyCluster";
 
 mongoose.connect(clusterURL, {
     useNewUrlParser: true,
@@ -51,7 +51,7 @@ const clearDatabase = async () => {
 //clearDatabase();
 
 const mailerSend = new MailerSend({
-    apiKey: process.env.MailerSEND_API_KEY,
+    apiKey: process.env.MLSN_API_KEY,
 });
 
 const sendFrom = new Sender("invicon@test-xkjn41mn8kp4z781.mlsender.net", "Invicon");
@@ -155,7 +155,7 @@ ex.post('/request-password-reset', async (req, res) => {
                 <p> You are receiving this because you (or someone else) have requested the reset of the password for your account. </p>
                 <p> Please click on the following link to reset your password: </p>
                 <p><a href="${resetLink}">${resetLink}</a></p>
-                <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
+                <p> If you did not request this, please ignore this email and your password will remain unchanged. </p>
             `);
 
         await mailerSend.email.send(emailParams);
