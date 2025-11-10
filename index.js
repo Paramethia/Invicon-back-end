@@ -54,7 +54,7 @@ const mailerSend = new MailerSend({
     apiKey: process.env.MailerSEND_API_KEY,
 });
 
-const sendFrom = new Sender("test-xkjn41mn8kp4z781.mlsender.net", "Invicon");
+const sendFrom = new Sender("invicon@test-xkjn41mn8kp4z781.mlsender.net", "Invicon");
 
 // Testing route
 
