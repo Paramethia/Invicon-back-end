@@ -17,9 +17,7 @@ ex.use(cors({
     credentials: true
 }));
 
-const clusterURL = "mongodb+srv://paramethia:PCx48Hh.u7e-_zM@mycluster.ahfaufe.mongodb.net/invicon?retryWrites=true&w=majority&appName=MyCluster";
-
-mongoose.connect(clusterURL, {
+mongoose.connect(process.env.CLUSTER_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     tlsInsecure: true,
