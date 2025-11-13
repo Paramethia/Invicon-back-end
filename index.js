@@ -60,7 +60,7 @@ ex.get('/ping', async (req, res) => {
     res.status(200).json({ status: "ok" })
 })
 
-// Register page function
+// Registration route
 
 ex.post('/register', async (req, res) => {
     const { username, email, password, usedInvite } = req.body;
@@ -104,7 +104,7 @@ ex.post('/register', async (req, res) => {
 });
 
 
-// Log in page function
+// Log in route
 
 ex.post('/login', async (req, res) => {
     const { username, password } = req.body;
@@ -124,7 +124,7 @@ ex.post('/login', async (req, res) => {
     }
 });
 
-// Password reset request page function
+// Password reset request route
 
 ex.post('/request-password-reset', async (req, res) => {
     const { email } = req.body;
@@ -164,7 +164,7 @@ ex.post('/request-password-reset', async (req, res) => {
     }
 });
 
-// Passwrod reset page function
+// Password reset route
 
 ex.post('/reset-password', async (req, res) => {
     const { token, newPassword } = req.body;
@@ -189,10 +189,9 @@ ex.post('/reset-password', async (req, res) => {
     }
 });
 
-// Home page functions
+// Home page routes
 
-let generateInviteId = () => {
-    // Logic to generate a unique invite Id
+const generateInviteId = () => {
     return `${Math.random().toString(35).substring(2, 10)}`;
 }
 
@@ -243,13 +242,11 @@ const tierUpdate = (inviter) => {
     }
 };
 
-// Home, Dashboard and Leaks page functions
-
 ex.post('/invite-check', async (req, res) => {
     const { username, inviteId } = req.body;
 
     try {   
-        let inviter = await Invites.findOne({ inviteId });
+        const inviter = await Invites.findOne({ inviteId });
             
         if (inviter) {
             // Increment the invites count and assign the user who used it
@@ -273,7 +270,7 @@ ex.post('/invite-data', async (req, res) => {
     const {username} = req.body;
 
     try {
-        let inviter = await Invites.findOne({ username });
+        const inviter = await Invites.findOne({ username });
 
         if (!inviter) {
             return res.status(404).json({ message: 'Invite data not found' });
@@ -336,11 +333,13 @@ ex.post('/capture-order', async (req, res) => {
   }
 });
 
+// Dashboard route
+
 ex.post('/invites', async (req, res) => {
     const { username } = req.body;
 
     try {
-        let inviter = await Invites.findOne({ username });
+        const inviter = await Invites.findOne({ username });
 
         if (inviter) {
             if (inviter.invites >= 1) {
@@ -357,11 +356,13 @@ ex.post('/invites', async (req, res) => {
     }
 });
 
+// Rewards route
+
 ex.post('/getTier', async (req, res) => {
     const { username } = req.body;
 
     try {
-        let inviter = await Invites.findOne({ username });
+        const inviter = await Invites.findOne({ username });
 
         if (inviter) {
             res.json({ message: "User found.", tier: inviter.tier });
@@ -372,7 +373,6 @@ ex.post('/getTier', async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
-
 
 const clientPage = path.join(__dirname + '/client/build/index.html');
 ex.get('*', (req, res) => {
