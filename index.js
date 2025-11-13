@@ -23,30 +23,9 @@ mongoose.connect(process.env.CLUSTER_URL, {
     tlsInsecure: true,
 });
 
-const Environment = process.env.NODE_ENV === "production"
-  ? paypal.core.LiveEnvironment
-  : paypal.core.SandboxEnvironment;
+const Environment = process.env.NODE_ENV === "production"? paypal.core.LiveEnvironment : paypal.core.SandboxEnvironment;
 
-const paypalClient = new paypal.core.PayPalHttpClient(
-  new Environment(process.env.PAYPAL_CLIENT_ID, process.env.PAYPAL_CLIENT_SECRET)
-);
-
-// Function to clear the database
-const clearDatabase = async () => {
-    try {
-        // Remove all documents from the collection
-        await Users.deleteMany({});
-        await Invites.deleteMany({});
-        console.log('Database cleared successfully');
-    } catch (error) {
-        console.error('Error clearing the database:', error);
-    } finally {
-        // Disconnect from the database
-        //mongoose.disconnect();
-    }
-};
-
-//clearDatabase();
+const paypalClient = new paypal.core.PayPalHttpClient( new Environment(process.env.PAYPAL_CLIENT_ID, process.env.PAYPAL_CLIENT_SECRET ));
 
 const mailerSend = new MailerSend({
     apiKey: process.env.MLSN_API_KEY,
@@ -102,7 +81,6 @@ ex.post('/register', async (req, res) => {
         res.status(500).json({ message: "Internal server error." });
     }
 });
-
 
 // Log in route
 
@@ -282,8 +260,10 @@ ex.post('/invite-data', async (req, res) => {
     }
 });
 
+    // Paypal payment
+
 ex.post('/create-order', async (req, res) => {
-  const { price } = req.body;
+  const { tier } = req.body;
 
   const request = new paypal.orders.OrdersCreateRequest();
   request.prefer("return=representation");
@@ -292,7 +272,7 @@ ex.post('/create-order', async (req, res) => {
     purchase_units: [{
       amount: {
         currency_code: "USD",
-        value: price.toString()
+        value: tier.price.toString()
       }
     }]
   });
