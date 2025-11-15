@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const Invites = require('./models/Invitates');
 const Users = require('./models/Users');
 const paypal = require('@paypal/checkout-server-sdk');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { MailerSend, EmailParams, Sender, Recipient } = require('mailersend');
 
 const ex = express();
@@ -313,6 +314,46 @@ ex.post('/capture-order', async (req, res) => {
   }
 });
 
+    // Stripe payment
+
+ex.post('/create-payment-intent', async (req, res) => {
+    const { amount, username, tier } = req.body;
+
+    try {
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount,
+            currency: 'usd',
+            metadata: { username, tier },
+            automatic_payment_methods: { enabled: true },
+        });
+
+        res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (err) {
+        console.error('Stripe error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+ex.post('/update-tier', async (req, res) => {
+    const { username, tier } = req.body;
+
+    try {
+        const inviter = await Invites.findOne({ username });
+
+        if (!inviter) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        inviter.tier = tier;
+        await inviter.save();
+
+        res.json({ message: "Tier updated successfully", tier: inviter.tier });
+    } catch (err) {
+        console.error("Error updating tier:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 // Dashboard route
 
 ex.post('/invites', async (req, res) => {
@@ -352,11 +393,6 @@ ex.post('/getTier', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
-});
-
-const clientPage = path.join(__dirname + '/client/build/index.html');
-ex.get('*', (req, res) => {
-    res.sendFile(clientPage);
 });
 
 ex.listen(process.env.PORT, () => {
