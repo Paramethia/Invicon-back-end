@@ -245,15 +245,13 @@ ex.post('/invite-check', async (req, res) => {
     }
 });
 
-ex.post('/invite-data', async (req, res) => {
+ex.post('/fetch-stats', async (req, res) => {
     const {username} = req.body;
 
     try {
         const inviter = await Invites.findOne({ username });
 
-        if (!inviter) {
-            return res.status(404).json({ message: 'Invite data not found' });
-        }
+        if (!inviter) return res.status(404).json({ message: 'Username not found' });
 
         res.json({ invites: inviter.invites, tier: inviter.tier });
     } catch (error) {
