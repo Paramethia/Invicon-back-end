@@ -8,7 +8,7 @@ const Users = new mongoose.Schema({
     inviteId: { type: String, unique: true },
     tier: { type: Number, default: 0 },
     invitees: [{
-        username: { type: String, unique: true },
+        username: String,
         joinedOn: { type: Date, default: Date.now }
     }],
     usedInvite: { type: String },
@@ -17,7 +17,7 @@ const Users = new mongoose.Schema({
 });
 
 Users.methods.updateTier = function () {
-    const i = this.invites;
+    const i = this.invitees.length;
     this.tier = i >= 100 ? 4 : i >= 20 ? 3 : i >= 10 ? 2 : i >= 5 ? 1 : 0;
 };
 
