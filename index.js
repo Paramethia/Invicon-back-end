@@ -32,7 +32,7 @@ const mailerSend = new MailerSend({
 
 const sendFrom = new Sender("invicon@test-xkjn41mn8kp4z781.mlsender.net", "Invicon");
 
-// Server wake route
+// Server waking route
 
 ex.get('/ping', async (req, res) => {
     res.status(200).json({ status: "ok" })
@@ -113,7 +113,7 @@ ex.post('/request-password-reset', async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const token = crypto.randomBytes(32).toString('hex');
+        const token = crypto.randomBytes(12).toString('hex');
         user.resetPasswordToken = token;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
         await user.save();
