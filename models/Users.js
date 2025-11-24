@@ -1,14 +1,24 @@
 const mongoose = require('mongoose');
 
 const Users = new mongoose.Schema({
-    username: { type: String, required: true },
-    email: { type: String, required: false },
+    username: { type: String, required: true, unique: true },
+    email: { type: String },
     password: { type: String, required: true },
+    createdOn: { type: Date, required: true, default: Date.now },
+    inviteId: { type: String, unique: true },
+    tier: { type: Number, default: 0 },
+    invitees: [{
+        username: String,
+        joinedOn: { type: Date, default: Date.now }
+    }],
     usedInvite: { type: String },
-    resetPasswordToken: { type: String },
-    resetPasswordExpires: { type: Date }
+    resetPasswordToken: String,
+    resetPasswordExpires: Date
 });
 
-const Invitates = mongoose.model('Users', Users);
+Users.methods.updateTier = function () {
+    const i = this.invites;
+    this.tier = i >= 100 ? 4 : i >= 20 ? 3 : i >= 10 ? 2 : i >= 5 ? 1 : 0;
+};
 
-module.exports = Invitates;
+module.exports = mongoose.model('Users', Users);
