@@ -1,10 +1,8 @@
 require('dotenv').config();
 const cors = require('cors');
-const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
-const Invites = require('./models/Invitates');
 const Users = require('./models/Users');
 const paypal = require('@paypal/checkout-server-sdk');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
@@ -34,7 +32,7 @@ const mailerSend = new MailerSend({
 
 const sendFrom = new Sender("invicon@test-xkjn41mn8kp4z781.mlsender.net", "Invicon");
 
-// Testing route
+// Server wake route
 
 ex.get('/ping', async (req, res) => {
     res.status(200).json({ status: "ok" })
@@ -64,6 +62,7 @@ ex.post('/register', async (req, res) => {
         const newUserData = {
             username,
             password,
+            inviteId: crypto.randomBytes(3).toString('hex'),
             usedInvite
         };
         
@@ -170,74 +169,42 @@ ex.post('/reset-password', async (req, res) => {
 
 // Home page routes
 
-const generateInviteId = () => {
-    return `${Math.random().toString(35).substring(2, 10)}`;
-}
-
-ex.post('/generate-invite', async (req, res) => {
+ex.post('/new-inviteId', async (req, res) => {
     const {username} = req.body;
-    const inviteId = generateInviteId();
-
+    
     try {
-        let inviter = await Invites.findOne({ username });
+        const user = await Users.findOne({ username });
 
-        if (inviter) {
-            // If an inviteId already exists for the username, return the existing Id with link
-            return res.json({ inviteLink: `https://invicon.netlify.app/register?inviteId=${inviter.inviteId}` });
-        } else {
-             const newInvite = new Invites({
-                username,
-                inviteId: inviteId
-            });
-        
-            await newInvite.save();
-            res.json({ inviteLink: `https://invicon.netlify.app/register?inviteId=${newInvite.inviteId}` });
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        if (!user.inviteId) {
+            user.inviteId = crypto.randomBytes(3).toString('hex');
+            await user.save();
         }
+
+        return res.json({ newInviteId: user.inviteId });
     } catch (err) {
         console.error('Error generating invite link:', err);
         res.status(500).json({ message: "Internal server error" });
     }
 });
 
-const tierUpdate = (inviter) => {
-    if (inviter.invites >= 100) {
-        inviter.tier = 8;
-    } else if (inviter.invites >= 85) {
-        inviter.tier = 7;
-    } else if (inviter.invites >= 70) {
-        inviter.tier = 6;
-    } else if (inviter.invites >= 50) {
-        inviter.tier = 5
-    } else if (inviter.invites >= 35) {
-        inviter.tier = 4;
-    } else if (inviter.invites >= 20) {
-        inviter.tier = 3;
-    } else if (inviter.invites >= 10) {
-        inviter.tier = 2;
-    } else if (inviter.invites >= 5) {
-        inviter.tier = 1;
-    } else {
-        inviter.tier = 0;
-    }
-};
-
 ex.post('/invite-check', async (req, res) => {
     const { username, inviteId } = req.body;
 
-    try {   
-        const inviter = await Invites.findOne({ inviteId });
-            
-        if (inviter) {
-            // Increment the invites count and assign the user who used it
+    try {
+        const user = await Users.findOne({ inviteId });
 
-            inviter.invites++; 
-            inviter.usedBy.push({ username });
+        if (user) {
+            await Users.updateOne({ inviteId },
+                { $push: { invitees: { username } }}
+            );
 
-            tierUpdate(inviter);
+            user.updateTier();
 
-            await inviter.save();
+            await user.save();
             res.json({ message: "Code found and updated data." });
-        } else { 
+        } else {
             res.status(402).json({ message: "Invalid invite code." });
         }
     } catch (err) {
@@ -249,13 +216,14 @@ ex.post('/fetch-stats', async (req, res) => {
     const {username} = req.body;
 
     try {
-        const inviter = await Invites.findOne({ username });
+        const user = await Users.findOne({ username });
 
-        if (!inviter) return res.status(404).json({ message: 'Username not found' });
+        if (!user) return res.status(404).json({ message: 'Username not found' });
 
-        res.json({ invites: inviter.invites, tier: inviter.tier });
+        res.json({ invites: user.invitees.length, tier: user.tier });
     } catch (error) {
         console.error('Error fetching invite data:', error);
+        res.sendStatus(500);
     }
 });
 
@@ -336,16 +304,16 @@ ex.post('/update-tier', async (req, res) => {
     const { username, tier } = req.body;
 
     try {
-        const inviter = await Invites.findOne({ username });
+        const user = await Users.findOne({ username });
 
-        if (!inviter) {
+        if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        inviter.tier = tier;
-        await inviter.save();
+        user.tier = tier;
+        await user.save();
 
-        res.json({ message: "Tier updated successfully", tier: inviter.tier });
+        res.json({ message: "Tier updated successfully", tier: user.tier });
     } catch (err) {
         console.error("Error updating tier:", err);
         res.status(500).json({ error: "Internal server error" });
@@ -358,17 +326,17 @@ ex.post('/invites', async (req, res) => {
     const { username } = req.body;
 
     try {
-        const inviter = await Invites.findOne({ username });
+        const user = await Users.findOne({ username });
 
-        if (inviter) {
-            if (inviter.invites >= 1) {
-                res.json({ invitees: inviter.usedBy });
+        if (user) {
+            if (user.invitees.length >= 1) {
+                res.json({ invitees: user.invitees });
             } else {
                 res.json({ message: "No invites yet." });
             }
         } else {
-            res.status(402).json({ message: "Inviter not found." });
-        } 
+            res.status(402).json({ message: "User not found." });
+        }
     } catch (error) {
         console.error("Error checking invites:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -377,18 +345,19 @@ ex.post('/invites', async (req, res) => {
 
 // Rewards route
 
-ex.post('/getTier', async (req, res) => {
+ex.post('/get-tier', async (req, res) => {
     const { username } = req.body;
 
     try {
-        const inviter = await Invites.findOne({ username });
+        const user = await Users.findOne({ username });
 
-        if (inviter) {
-            res.json({ message: "User found.", tier: inviter.tier });
+        if (user) {
+            res.json({ message: "User found.", tier: user.tier });
         } else {
             res.status(402).json({ message: "User not found." });
         }
     } catch (error) {
+        console.error("Error getting tier:", error)
         res.status(500).json({ error: 'Server error' });
     }
 });
