@@ -8,7 +8,7 @@ const Users = new mongoose.Schema({
     inviteId: { type: String, unique: true },
     tier: { type: Number, default: 0 },
     invitees: [{
-        username: String,
+        username: { type: String, unique: true },
         joinedOn: { type: Date, default: Date.now }
     }],
     usedInvite: { type: String },
