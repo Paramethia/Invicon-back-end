@@ -205,7 +205,7 @@ ex.post('/invite-check', async (req, res) => {
             await user.save();
             res.json({ message: "Code found and updated data." });
         } else {
-            res.status(402).json({ message: "Invalid invite code." });
+            res.status(404).json({ message: "Invalid invite code." });
         }
     } catch (err) {
         res.status(500).json(err);
