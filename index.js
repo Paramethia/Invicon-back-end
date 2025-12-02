@@ -362,6 +362,107 @@ ex.post('/get-tier', async (req, res) => {
     }
 });
 
+// Admin route
+
+const admin = "Kyrin"; // Don't worry. I wouldn't expose this if it was an actual website
+
+ex.post('/collection', async (req, res) => {
+    const { username } = req.body;
+
+    try {
+        if (username !== admin) {
+            res.sendStatus(403);
+            return
+        }
+
+        const users = await Users.find({});
+        res.json({users});
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({error: 'Server error'});
+    }
+});
+
+ex.post('/delete-them', async (req, res) => {
+    const {username} = req.body;
+
+    try {
+        if (username !== admin) {
+            res.sendStatus(403);
+            return
+        }
+
+        console.log("Deleting usrs...")
+        clearDatabase();
+        res.sendStatus(200);
+        console.log("Deleted them")
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({error: 'Server error'});
+    }
+})
+
+ex.post('/edit-user', async (req, res) => {
+    const {editUser} = req.body;
+
+    try {
+        const userId = editUser.id;
+        const user = await Users.findOne({userId});
+
+        if (!user) res.sendStatus(404);
+
+        user.username = editUser.username;
+        if (editUser.email) user.email = editUser.email;
+        user.tier = editUser.tier;
+        await user.save();
+
+        res.sendStatus(200);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({error: 'Server error'});
+    }
+});
+
+ex.post('/delete-user', async (req, res) => {
+    const { username, selection} = req.body;
+
+    try {
+        if (username !== admin) {
+            res.sendStatus(403);
+            return
+        }
+
+        const userId = selection.id;
+        await Users.deleteOne({userId});
+
+        res.sendStatus(200);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({error: 'Server error'});
+    }
+});
+
+ex.post('/delete-selection', async (req, res) => {
+    const { username, selection} = req.body;
+
+    try {
+        if (username !== admin) {
+            res.sendStatus(403);
+            return
+        }
+
+        for (var user in selection) {
+            const userId = user.id;
+            await Users.deleteOne({userId});
+        }
+
+        res.sendStatus(200);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({error: 'Server error'});
+    }
+});
+
 ex.listen(process.env.PORT, () => {
     console.log("Server listening on port:", process.env.PORT);
 });
