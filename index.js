@@ -364,6 +364,15 @@ ex.post('/get-tier', async (req, res) => {
 
 // Admin route
 
+const clearDatabase = async () => {
+    try {
+        await Users.deleteMany({});
+        console.log('Database cleared successfully');
+    } catch (error) {
+        console.error('Error clearing the database:', error);
+    }
+};
+
 const admin = "Kyrin"; // Don't worry. I wouldn't expose this if it was an actual website
 
 ex.post('/collection', async (req, res) => {
